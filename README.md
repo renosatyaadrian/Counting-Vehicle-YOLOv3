@@ -1,7 +1,7 @@
 
 # Introduction
 
-The purpose of this little project is to add object tracking to YOLO and Deep Sort and achieve real-time multiple object tracking
+The purpose of this little project is to add object tracking to YOLOv3 and achieve real-time multiple object tracking
 
 
 # Related repositories
@@ -17,6 +17,8 @@ The purpose of this little project is to add object tracking to YOLO and Deep So
 1. Download Weights for Yolo and Deep Sort : https://drive.google.com/drive/folders/1zIncm9JVFY99a8wIXQ2MNgi12Wx7DwzH?usp=sharing
   
 ```
+
+
 
 # Dependencies
 
