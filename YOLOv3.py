@@ -17,7 +17,7 @@ ap.add_argument("-o", "--output", required=True,
 	help="path to output video")
 ap.add_argument("-y", "--yolo", required=True,
 	help="base path to YOLO directory")
-ap.add_argument("-c", "--confidence", type=float, default=0.5,
+ap.add_argument("-c", "--confidence", type=float, default=0.2,
 	help="minimum probability to filter weak detections")
 ap.add_argument("-t", "--threshold", type=float, default=0.5,
 	help="threshold when applyong non-maxima suppression")
@@ -47,7 +47,7 @@ COLORS = np.random.randint(0, 255, size=(len(LABELS), 3),
 	dtype="uint8")
 
 # derive the paths to the YOLO weights and model configuration
-weightsPath = os.path.sep.join([args["yolo"], "yolov3.weights"])
+weightsPath = os.path.sep.join([args["yolo"], "yolov3-transf.weights"])
 configPath = os.path.sep.join([args["yolo"], "yolov3.cfg"])
 
 # load our YOLO object detector trained on COCO dataset (80 classes)
@@ -85,11 +85,13 @@ list_of_vehicles = ["car","bus","motorbike","truck","bicycle"]
 penghitung = 0
 
 # start
+upper_left = (425, 0)
+bottom_right = (853, 480)
 
 while True:
 	# read the next frame from the file
 	(grabbed, frame) = vs.read()
-
+	#frame = rect_img[upper_left[1] : bottom_right[1], upper_left[0] : bottom_right[0]]
 	# if the frame was not grabbed, then we have reached the end
 	# of the stream
 	if not grabbed:
@@ -150,47 +152,51 @@ while True:
 
 				# update our list of bounding box coordinates,
 				# confidences, and class IDs
-				boxes.append([x, y, int(width), int(height)])
-				#print(confidence)
-				confidences.append(float(confidence))
-				#print(classIDs)
-				classIDs.append(classID)
-				classname.append(LABELS[classID])
+				if x >200:
+					boxes.append([x, y, int(width), int(height)])
+					#print(confidence)
+					confidences.append(float(confidence))
+					#print(classIDs)
+					classIDs.append(classID)
+					classname.append(LABELS[classID])
 
 	# apply non-maxima suppression to suppress weak, overlapping
 	# bounding boxes
-	print(boxes)
+	#print(boxes)
 	idxs = cv2.dnn.NMSBoxes(boxes, confidences, args["confidence"],
 		args["threshold"])
 
-	print(idxs)
+	#print(idxs)
 
 	# ensure at least one detection exists
 	if len(idxs) > 0:
 		# loop over the indexes we are keeping
 		for i in idxs.flatten():
 			# extract the bounding box coordinates
-
-			(x, y) = (boxes[i][0], boxes[i][1])
-			(w, h) = (boxes[i][2], boxes[i][3])
-
-			# draw a bounding box rectangle and label on the frame
-			color = [int(c) for c in COLORS[classIDs[i]]]
-			cv2.rectangle(frame, (x, y), (x + w, y + h), color, 2)
-			#cv2.putText(frame, "kendaraan: "+str(penghitung), (425, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0),2)
-			#cv2.line(frame, (20, 455), (640,455), (0,127,255), 3)
-			text = "{}: {:.4f}".format(LABELS[classIDs[i]],
-				confidences[i])
-			cv2.putText(frame, text, (x, y - 5),
-				cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+			
+			if LABELS[classIDs[i]] != "person":
+				
+				(x, y) = (boxes[i][0], boxes[i][1])
+				(w, h) = (boxes[i][2], boxes[i][3])
+				
+				
+				# draw a bounding box rectangle and label on the frame
+				color = [int(c) for c in COLORS[classIDs[i]]]
+				
+				#if x > 200:
+				cv2.rectangle(frame, (x, y), (x + w, y + h), color, 2)
+				#cv2.putText(frame, "kendaraan: "+str(penghitung), (425, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0),2)
+				#cv2.line(frame, (20, 455), (640,455), (0,127,255), 3)
+				text = "{}: {:.4f}".format(LABELS[classIDs[i]], confidences[i])
+				cv2.putText(frame, text, (x, y - 5),cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
 	# check if the video writer is None
-
+	
 	total_vehicles, each_vehicle = get_vehicle_count(boxes, classname)
 	print("Total vehicles in image", total_vehicles)
 	print("Each vehicles count in image", each_vehicle)
 
-	cv2.putText(frame, "Total Kendaraan: "+str(total_vehicles), (0, 475), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255),2)
+	cv2.putText(frame, "Total Kendaraan: "+str(total_vehicles), (0, 430), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (123, 0, 255),2)
 	if writer is None:
 		# initialize our video writer
 		fourcc = cv2.VideoWriter_fourcc(*"MJPG")
